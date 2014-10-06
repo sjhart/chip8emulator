@@ -75,7 +75,7 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
 		  {
 			  /* Calls subroutine at NNN */
 			  uint8_t addresshi = code[0] & 0x0f;
-			  printf("%-10s #$%01x%02x", "CLL", addresshi, code[1]);
+			  printf("%-10s #$%01x%02x", "CALL", addresshi, code[1]);
 		  }
 		  break;
       case 0x03:
@@ -139,15 +139,15 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
 						  /* Sets VX to the value of VY */
 						  uint8_t reg_x = code[0] & 0x0f;
 						  uint8_t reg_y = (code[1] >> 4);
-						  printf("%-10s V%01X,V%01X", "MOVOR", reg_x, reg_y);
+						  printf("%-10s V%01X,V%01X", "OR", reg_x, reg_y);
 					  }
 					  break;
       		      case 0x02:
 					  {
-						  /* Sets VX to VX and VY */
+						  /* Sets VX to VX or VY. */
 						  uint8_t reg_x = code[0] & 0x0f;
 						  uint8_t reg_y = (code[1] >> 4);
-						  printf("%-10s V%01X,V%01X", "MOVAND", reg_x, reg_y);
+						  printf("%-10s V%01X,V%01X", "AND", reg_x, reg_y);
 					  }
 					  break;
       		      case 0x03:
@@ -155,7 +155,7 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
 						  /* Sets VX to VX xor VY */
 						  uint8_t reg_x = code[0] & 0x0f;
 						  uint8_t reg_y = (code[1] >> 4);
-						  printf("%-10s V%01X,V%01X", "MOVXOR", reg_x, reg_y);
+						  printf("%-10s V%01X,V%01X", "XOR", reg_x, reg_y);
 					  }
 					  break;
       		      case 0x04:
@@ -222,7 +222,7 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
 				  /* Skips the next instruction if VX doesn't equal VY */
 				  uint8_t reg_x = code[0] & 0x0f;
 				  uint8_t reg_y = (code[1] >> 4);
-				  printf("%-10s V%01X,#$%02x", "SKPNE", reg_x, reg_y);
+				  printf("%-10s V%01X,V%01X", "SKPNE", reg_x, reg_y);
 			  }
 		  }
 		  break;
@@ -230,14 +230,14 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
           {
         	  /* Sets I to the address NNN */
               uint8_t addresshi = code[0] & 0x0f;
-              printf("%-10s I,#$%01x%02x", "MOV", addresshi, code[1]);
+              printf("%-10s #$%01x%02x", "MOVI", addresshi, code[1]);
           }
           break;
       case 0x0b:
       	  {
 			  /* Jumps to the address NNN plus V0 */
 			  uint8_t addresshi = code[0] & 0x0f;
-			  printf("%-10s #$%01x%02x", "JMP", addresshi, code[1]);
+			  printf("%-10s #$%01x%02x", "JMPV0", addresshi, code[1]);
 		  }
       	  break;
       case 0x0c:
@@ -247,7 +247,20 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
 			  printf("%-10s V%01X,#$%02x", "RND", reg, code[1]);
 		  }
       	  break;
-      case 0x0d: printf("d not handled yet"); break;
+      case 0x0d:
+    	  {
+    		  /* Sprites stored in memory at location
+    		   * in index register (I), maximum 8bits
+    		   * wide. Wraps around the screen. If when
+    		   * drawn, clears a pixel, register VF is
+    		   * set to 1 otherwise it is zero. All drawing
+    		   * is XOR drawing (e.g. it toggles the screen pixels) */
+    		  uint8_t reg_x = code[0] & 0x0f;
+			  uint8_t reg_y = (code[1] >> 4);
+			  uint8_t height = code[1] & 0x0f;
+			  printf("%-10s V%01X,V%01X,%01X", "SPRITE", reg_x, reg_y, height);
+    	  }
+    	  break;
       case 0x0e:
       	  {
       		  if (code[1] == 0x9E)
@@ -255,14 +268,14 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
       			  /* Skips the next instruction if
       			   * the key stored in VX is pressed */
       			uint8_t reg = code[0] & 0x0f;
-      			printf("%-10s V%01X", "SKPEQ", reg);
+      			printf("%-10s V%01X", "SKPDN", reg);
       		  }
       		  else if (code[1] == 0xA1)
       		  {
       			/* Skips the next instruction if
       			 * the key stored in VX isn't pressed */
       			uint8_t reg = code[0] & 0x0f;
-      			printf("%-10s V%01X", "SKPNE", reg);
+      			printf("%-10s V%01X", "SKPUP", reg);
       		  }
       		  else
       		  {
@@ -270,7 +283,92 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
       		  }
       	  }
       	  break;
-      case 0x0f: printf("f not handled yet"); break;
+      case 0x0f:
+		{
+			switch (code[1])
+			{
+			  case 0x07:
+				  {
+					  /* Sets VX to the value of the delay timer */
+					  uint8_t reg = code[0] & 0x0f;
+					  printf("%-10s V%01X", "GETDTMR", reg);
+				  }
+				  break;
+			  case 0x0A:
+				{
+					/* A key press is awaited, and then stored in VX */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s V%01X", "GETKEY", reg);
+				}
+				break;
+			  case 0x15:
+				{
+					/* Sets the delay timer to VX */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s V%01X", "SETDTMR", reg);
+				}
+				break;
+			  case 0x18:
+				{
+					/* Sets the sound timer to VX */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s V%01X", "SETSTMR", reg);
+				}
+				break;
+			  case 0x1E:
+				{
+					/* Adds VX to I */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s V%01X", "ADDI", reg);
+				}
+				break;
+			  case 0x29:
+				{
+					/* Sets I to the location of the
+					 * sprite for the character in VX.
+					 * Characters 0-F (in hexadecimal)
+					 * are represented by a 4x5 font */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s V%01X", "HXCHR", reg);
+				}
+				break;
+			  case 0x33:
+				{
+					/* Stores the Binary-coded decimal
+					 * representation of VX, with the most
+					 * significant of three digits at the
+					 * address in I, the middle digit at I
+					 * plus 1, and the least significant digit
+					 * at I plus 2. (In other words, take the
+					 * decimal representation of VX, place the
+					 * hundreds digit in memory at location in I,
+					 * the tens digit at location I+1, and the
+					 * ones digit at location I+2.) */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s V%01X", "BCD", reg);
+				}
+				break;
+			  case 0x55:
+				{
+					/* Stores V0 to VX in memory
+					 * starting at address I */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s VO,V%01X", "STR", reg);
+				}
+				break;
+			  case 0x65:
+				{
+					/* Fills V0 to VX with values
+					 * from memory starting at address I */
+					uint8_t reg = code[0] & 0x0f;
+					printf("%-10s VO,V%01X", "LOAD", reg);
+				}
+				break;
+			  default:
+			    printf("Unrecognized OpCode");
+			}
+		}
+		break;
   }
 }
 
