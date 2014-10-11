@@ -26,8 +26,113 @@ Chip8VM::Chip8VM()
     memset(_key, 0, sizeof(_key));
     memset(_memory, 0, sizeof(_memory));
     memset(_display, 0, sizeof(_display));
-
     memset(_memory, 0, sizeof(_memory));
+
+    const static uint8_t FONTSET[] =
+    {
+        // 0
+        0b11110000,
+        0b10010000,
+        0b10010000,
+        0b10010000,
+        0b11110000,
+        // 1
+        0b00100000,
+        0b01100000,
+        0b00100000,
+        0b00100000,
+        0b01110000,
+        // 2
+        0b11110000,
+        0b00010000,
+        0b11110000,
+        0b10000000,
+        0b11110000,
+        // 3
+        0b11110000,
+        0b00010000,
+        0b11110000,
+        0b00010000,
+        0b11110000,
+        // 4
+        0b10010000,
+        0b10010000,
+        0b11110000,
+        0b00010000,
+        0b00010000,
+        // 5
+        0b11110000,
+        0b10000000,
+        0b11110000,
+        0b00010000,
+        0b11110000,
+        // 6
+        0b11110000,
+        0b10000000,
+        0b11110000,
+        0b10010000,
+        0b11110000,
+        // 7
+        0b11110000,
+        0b00010000,
+        0b00100000,
+        0b01000000,
+        0b01000000,
+        // 8
+        0b11110000,
+        0b10010000,
+        0b11110000,
+        0b10010000,
+        0b11110000,
+        // 9
+        0b11110000,
+        0b10010000,
+        0b11110000,
+        0b00010000,
+        0b11110000,
+        // A
+        0b11110000,
+        0b10010000,
+        0b11110000,
+        0b10010000,
+        0b10010000,
+        // B
+        0b11100000,
+        0b10010000,
+        0b11100000,
+        0b10010000,
+        0b11100000,
+        // C
+        0b11110000,
+        0b10000000,
+        0b10000000,
+        0b10000000,
+        0b11110000,
+        // D
+        0b11100000,
+        0b10010000,
+        0b10010000,
+        0b10010000,
+        0b11100000,
+        // E
+        0b11110000,
+        0b10000000,
+        0b11110000,
+        0b10000000,
+        0b11110000,
+        // F
+        0b11110000,
+        0b10000000,
+        0b11110000,
+        0b10000000,
+        0b10000000
+    };
+
+    // load font set
+    for (uint8_t i = 0, j = FONTSET_MEMORY_START; i < FONTSET_SIZE; i++, j++)
+    {
+        _memory[j] = FONTSET[i];
+    }
 }
 
 Chip8VM::~Chip8VM()
@@ -92,16 +197,28 @@ const bool Chip8VM::isKeyPressed(uint8_t key_num) const
     return _key[key_num];
 }
 
-uint8_t Chip8VM::getMemory(uint8_t index) const
+uint8_t Chip8VM::getMemory(uint16_t index) const
 {
     //TODO error check index bounds
     return _memory[index];
 }
 
-void Chip8VM::setMemory(uint8_t index, uint8_t val)
+void Chip8VM::setMemory(uint16_t index, uint8_t val)
 {
     //TODO error check index bounds
     _memory[index] = val;
+}
+
+uint8_t Chip8VM::getDisplay(uint16_t index) const
+{
+    //TODO error check index bounds
+    return _display[index];
+}
+
+void Chip8VM::setDisplay(uint16_t index, uint8_t val)
+{
+    //TODO error check index bounds
+    _display[index] = val;
 }
 
 void Chip8VM::loadMemory(char *file)
@@ -151,4 +268,16 @@ void Chip8VM::clearDisplay()
 void Chip8VM::incPC()
 {
     _pc += 2;
+}
+
+void Chip8VM::decDelayTimer()
+{
+    if (_delay_timer > 0)
+        _delay_timer--;
+}
+
+void Chip8VM::decSoundTimer()
+{
+    if (_sound_timer > 0)
+        _sound_timer--;
 }

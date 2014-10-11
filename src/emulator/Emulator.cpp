@@ -256,6 +256,7 @@ void Emulator::processChip8Ops()
         uint8_t reg_y = (byte2 >> 4);
         uint8_t height = byte2 & 0x0f;
         is->sprite(reg_x, reg_y, height);
+        //TODO: flag screen for redraw
     }
         break;
     case 0x0e:
@@ -367,6 +368,13 @@ void Emulator::processChip8Ops()
     }
         break;
     }
+
+    // Update timers
+    ch8.decDelayTimer();
+
+    if (ch8.getSoundTimer() == 1)
+        ;//TODO: need to beep
+    ch8.decSoundTimer();
 }
 
 

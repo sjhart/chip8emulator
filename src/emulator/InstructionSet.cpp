@@ -7,6 +7,10 @@
 
 #include "InstructionSet.h"
 
+#include <stdint.h>
+#include <stdlib.h>
+#include <time.h>
+
 InstructionSet::InstructionSet(Chip8VM& vm)
 {
     vm_ptr = &vm;
@@ -140,14 +144,35 @@ void InstructionSet::jmpv0(uint16_t address)
     jmp(address + vm_ptr->getVRegister(0));
 }
 
-void InstructionSet::rnd(uint8_t reg, uint8_t address)
+void InstructionSet::rnd(uint8_t reg, uint8_t mask)
 {
-    //TODO: implement
+    srand(time(0));
+    uint8_t rndNum = rand() % 255 & mask;
+    mov(reg, rndNum);
+    // increment of PC counter handled by mov
 }
 
 void InstructionSet::sprite(uint8_t regx, uint8_t regy, uint8_t height)
 {
-    //TODO: implement
+    uint8_t pxl;
+
+    vm_ptr->setVRegister(0xF, 0);
+    for (int row = 0; row < height; row++)
+    {
+        pxl = vm_ptr->getMemory(vm_ptr->getIRegister() + row);
+        for (int column = 0; column < 8; column++)
+        {
+            if ((pxl & (0x80 >> column)) != 0) // iterate through each bit in pxl
+            {
+                uint8_t curPxl = vm_ptr->getDisplay(
+                        regx + column + ((regy + row) * 64));
+                if (curPxl == 1)
+                    vm_ptr->setVRegister(0xF, 1); // mark collision
+                vm_ptr->setDisplay(curPxl, curPxl ^ 1);
+            }
+        }
+    }
+    vm_ptr->incPC();
 }
 
 void InstructionSet::skpdn(uint8_t key)
@@ -207,7 +232,8 @@ void InstructionSet::addi(uint8_t reg)
 
 void InstructionSet::hxchr(uint8_t reg)
 {
-    //TODO: implement
+    vm_ptr->setIRegister(vm_ptr->FONTSET_MEMORY_START + reg);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::bcd(uint8_t reg)

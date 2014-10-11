@@ -15,6 +15,9 @@ class Chip8VM
 public:
     // Constants
     const static uint16_t PROGRAM_MEMORY_START = 0x200;
+    const static uint16_t FONTSET_MEMORY_START = 0x0;
+    const static uint8_t FONTSET_SIZE = 80;
+    const static uint8_t FONTSET[];
 
     Chip8VM();
     virtual ~Chip8VM();
@@ -37,8 +40,11 @@ public:
 
     const bool isKeyPressed(uint8_t key_num) const;
 
-    uint8_t getMemory(uint8_t index) const;
-    void setMemory(uint8_t index, uint8_t val);
+    uint8_t getMemory(uint16_t index) const;
+    void setMemory(uint16_t index, uint8_t val);
+
+    uint8_t getDisplay(uint16_t index) const;
+    void setDisplay(uint16_t index, uint8_t val);
 
     // Utility Methods
     void loadMemory(char *file);
@@ -47,6 +53,8 @@ public:
     void stackPop();
     void clearDisplay();
     void incPC();
+    void decDelayTimer();
+    void decSoundTimer();
 
 private:
     // Member variables
