@@ -42,6 +42,7 @@ public:
 
     // Utility Methods
     void loadMemory(char *file);
+    uint8_t getCurrentMemory() const;
     void stackPush();
     void stackPop();
     void clearDisplay();

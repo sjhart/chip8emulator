@@ -50,7 +50,7 @@ public:
     void load(uint8_t reg);
 
 private:
-    Chip8VM* _vm;
+    Chip8VM* vm_ptr;
 };
 
 #endif /* INSTRUCTIONSET_H_ */

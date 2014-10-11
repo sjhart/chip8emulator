@@ -126,6 +126,11 @@ void Chip8VM::loadMemory(char *file)
     fclose(f);
 }
 
+uint8_t Chip8VM::getCurrentMemory() const
+{
+    return getMemory(_pc);
+}
+
 void Chip8VM::stackPush()
 {
     //TODO:validate stack is not full

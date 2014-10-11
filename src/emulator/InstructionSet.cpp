@@ -9,165 +9,165 @@
 
 InstructionSet::InstructionSet(Chip8VM& vm)
 {
-    _vm = &vm;
+    vm_ptr = &vm;
 }
 
 InstructionSet::~InstructionSet()
 {
-    _vm = 0;
-
+    vm_ptr = 0;
 }
 
 void InstructionSet::clr()
 {
-    _vm->clearDisplay();
-    _vm->incPC();
+    vm_ptr->clearDisplay();
+    vm_ptr->incPC();
 }
 
 void InstructionSet::ret()
 {
-    _vm->stackPop();
+    vm_ptr->stackPop();
 }
 
 void InstructionSet::rcacall(uint16_t address)
 {
+    //TODO: implement
 }
 
 void InstructionSet::jmp(uint16_t address)
 {
-    _vm->setPC(address);
+    vm_ptr->setPC(address);
 }
 
 void InstructionSet::call(uint16_t address)
 {
-    _vm->stackPush();
-    _vm->setPC(address);
+    vm_ptr->stackPush();
+    vm_ptr->setPC(address);
 }
 
 void InstructionSet::skpeq(uint8_t val1, uint8_t val2)
 {
     if (val1 == val2)
-        _vm->incPC();
-    _vm->incPC();
-
+        vm_ptr->incPC();
+    vm_ptr->incPC();
 }
 
 void InstructionSet::skpne(uint8_t val1, uint8_t val2)
 {
     if (val1 != val2)
-        _vm->incPC();
-    _vm->incPC();
+        vm_ptr->incPC();
+    vm_ptr->incPC();
 }
 
 void InstructionSet::add(uint8_t reg, uint8_t val, bool carryFlag)
 {
     if (carryFlag)
     {
-        if ((_vm->getVRegister(reg)) > (0xFF - val)) // carry
-            _vm->setVRegister(0xF, 1);
+        if ((vm_ptr->getVRegister(reg)) > (0xFF - val)) // carry
+            vm_ptr->setVRegister(0xF, 1);
         else
-            _vm->setVRegister(0xF, 0);
+            vm_ptr->setVRegister(0xF, 0);
     }
-    _vm->setVRegister(reg, _vm->getVRegister(reg) + val);
-    _vm->incPC();
+    vm_ptr->setVRegister(reg, vm_ptr->getVRegister(reg) + val);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::mov(uint8_t reg, uint8_t val)
 {
-    _vm->setVRegister(reg, val);
-    _vm->incPC();
+    vm_ptr->setVRegister(reg, val);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::_or(uint8_t reg1, uint8_t reg2)
 {
-    _vm->setVRegister(reg1, _vm->getVRegister(reg1) | reg2);
-    _vm->incPC();
+    vm_ptr->setVRegister(reg1, vm_ptr->getVRegister(reg1) | reg2);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::_and(uint8_t reg1, uint8_t reg2)
 {
-    _vm->setVRegister(reg1, _vm->getVRegister(reg1) & reg2);
-    _vm->incPC();
+    vm_ptr->setVRegister(reg1, vm_ptr->getVRegister(reg1) & reg2);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::_xor(uint8_t reg1, uint8_t reg2)
 {
-    _vm->setVRegister(reg1, _vm->getVRegister(reg1) ^ reg2);
-    _vm->incPC();
+    vm_ptr->setVRegister(reg1, vm_ptr->getVRegister(reg1) ^ reg2);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::sub(uint8_t reg, uint8_t val)
 {
-    if (_vm->getVRegister(reg) < val) // borrow
-        _vm->setVRegister(0xF, 1);
+    if (vm_ptr->getVRegister(reg) < val) // borrow
+        vm_ptr->setVRegister(0xF, 1);
     else
-        _vm->setVRegister(0xF, 0);
-    _vm->setVRegister(reg, _vm->getVRegister(reg) - val);
-    _vm->incPC();
+        vm_ptr->setVRegister(0xF, 0);
+    vm_ptr->setVRegister(reg, vm_ptr->getVRegister(reg) - val);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::rsub(uint8_t reg, uint8_t val)
 {
-    if (_vm->getVRegister(reg) > val) // borrow
-        _vm->setVRegister(0xF, 1);
+    if (vm_ptr->getVRegister(reg) > val) // borrow
+        vm_ptr->setVRegister(0xF, 1);
     else
-        _vm->setVRegister(0xF, 0);
-    _vm->setVRegister(reg, val - _vm->getVRegister(reg));
-    _vm->incPC();
+        vm_ptr->setVRegister(0xF, 0);
+    vm_ptr->setVRegister(reg, val - vm_ptr->getVRegister(reg));
+    vm_ptr->incPC();
 }
 
 void InstructionSet::shr(uint8_t reg)
 {
-    _vm->setVRegister(0xF, _vm->getVRegister(reg) & 0x01);
-    _vm->setVRegister(reg, _vm->getVRegister(reg) >> 1);
-    _vm->incPC();
+    vm_ptr->setVRegister(0xF, vm_ptr->getVRegister(reg) & 0x01);
+    vm_ptr->setVRegister(reg, vm_ptr->getVRegister(reg) >> 1);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::shl(uint8_t reg)
 {
-    _vm->setVRegister(0xF, _vm->getVRegister(reg) & 0xFE);
-    _vm->setVRegister(reg, _vm->getVRegister(reg) << 1);
-    _vm->incPC();
+    vm_ptr->setVRegister(0xF, vm_ptr->getVRegister(reg) & 0x80);
+    vm_ptr->setVRegister(reg, vm_ptr->getVRegister(reg) << 1);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::movi(uint16_t address)
 {
-    _vm->setIRegister(address);
-    _vm->incPC();
+    vm_ptr->setIRegister(address);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::jmpv0(uint16_t address)
 {
-    jmp(address + _vm->getVRegister(0));
+    jmp(address + vm_ptr->getVRegister(0));
 }
 
 void InstructionSet::rnd(uint8_t reg, uint8_t address)
 {
-
+    //TODO: implement
 }
 
 void InstructionSet::sprite(uint8_t regx, uint8_t regy, uint8_t height)
 {
+    //TODO: implement
 }
 
 void InstructionSet::skpdn(uint8_t key)
 {
-    if (_vm->isKeyPressed(key))
-        _vm->incPC();
-    _vm->incPC();
+    if (vm_ptr->isKeyPressed(key))
+        vm_ptr->incPC();
+    vm_ptr->incPC();
 }
 
 void InstructionSet::skpup(uint8_t key)
 {
-    if (!_vm->isKeyPressed(key))
-        _vm->incPC();
-    _vm->incPC();
+    if (!vm_ptr->isKeyPressed(key))
+        vm_ptr->incPC();
+    vm_ptr->incPC();
 }
 
 void InstructionSet::getdtmr(uint8_t reg)
 {
-    _vm->setVRegister(reg, _vm->getDelayTimer());
-    _vm->incPC();
+    vm_ptr->setVRegister(reg, vm_ptr->getDelayTimer());
+    vm_ptr->incPC();
 }
 
 void InstructionSet::getkey(uint8_t reg)
@@ -178,62 +178,63 @@ void InstructionSet::getkey(uint8_t reg)
     {
         if (i == 16)
             i = 0;
-        pressed = _vm->isKeyPressed(i);
+        pressed = vm_ptr->isKeyPressed(i);
         if (pressed)
             break;
         i++;
     }
-    _vm->setVRegister(reg, i);
-    _vm->incPC();
+    vm_ptr->setVRegister(reg, i);
+    vm_ptr->incPC();
 }
 
 void InstructionSet::setdtmr(uint8_t reg)
 {
-    _vm->setDelayTimer(_vm->getVRegister(reg));
-    _vm->incPC();
+    vm_ptr->setDelayTimer(vm_ptr->getVRegister(reg));
+    vm_ptr->incPC();
 }
 
 void InstructionSet::setstmr(uint8_t reg)
 {
-    _vm->setSoundTimer(_vm->getVRegister(reg));
-    _vm->incPC();
+    vm_ptr->setSoundTimer(vm_ptr->getVRegister(reg));
+    vm_ptr->incPC();
 }
 
 void InstructionSet::addi(uint8_t reg)
 {
-    _vm->setIRegister(_vm->getIRegister() + _vm->getVRegister(reg));
-    _vm->incPC();
+    vm_ptr->setIRegister(vm_ptr->getIRegister() + vm_ptr->getVRegister(reg));
+    vm_ptr->incPC();
 }
 
 void InstructionSet::hxchr(uint8_t reg)
 {
+    //TODO: implement
 }
 
 void InstructionSet::bcd(uint8_t reg)
 {
-    uint16_t Iaddr = _vm->getIRegister();
-    _vm->setMemory(Iaddr++, _vm->getVRegister(reg) / 100); // hundreds
-    _vm->setMemory(Iaddr++, (_vm->getVRegister(reg) / 10) % 10); // tens
-    _vm->setMemory(Iaddr, _vm->getVRegister(reg) % 100); // ones
-    _vm->incPC();
+    uint16_t Iaddr = vm_ptr->getIRegister();
+    vm_ptr->setMemory(Iaddr++, vm_ptr->getVRegister(reg) / 100); // hundreds
+    vm_ptr->setMemory(Iaddr++, (vm_ptr->getVRegister(reg) / 10) % 10); // tens
+    vm_ptr->setMemory(Iaddr, vm_ptr->getVRegister(reg) % 100); // ones
+    vm_ptr->incPC();
 }
 
 void InstructionSet::str(uint8_t reg)
 {
-    uint16_t Iaddr = _vm->getIRegister();
+    uint16_t Iaddr = vm_ptr->getIRegister();
     for (uint8_t i = 0; i <= reg; i++)
     {
-        _vm->setMemory(Iaddr++, _vm->getVRegister(i));
+        vm_ptr->setMemory(Iaddr++, vm_ptr->getVRegister(i));
     }
-    _vm->incPC();
+    vm_ptr->incPC();
 }
 
 void InstructionSet::load(uint8_t reg)
 {
-    uint16_t Iaddr = _vm->getIRegister();
+    uint16_t Iaddr = vm_ptr->getIRegister();
     for (uint8_t i = 0; i <= reg; i++)
     {
-        _vm->setVRegister(i, _vm->getMemory(Iaddr++));
+        vm_ptr->setVRegister(i, vm_ptr->getMemory(Iaddr++));
     }
-    _vm->incPC();
+    vm_ptr->incPC();
 }
