@@ -14,7 +14,7 @@ class Chip8VM
 {
 public:
     // Constants
-    const uint16_t PROGRAM_MEMORY_START;
+    const static uint16_t PROGRAM_MEMORY_START = 0x200;
 
     Chip8VM();
     virtual ~Chip8VM();
@@ -24,7 +24,7 @@ public:
     void setVRegister(uint8_t v_num, uint8_t v_val);
 
     uint16_t getIRegister() const;
-    void setIegister(uint16_t v_val);
+    void setIRegister(uint16_t v_val);
 
     uint16_t getPC() const;
     void setPC(uint16_t pc);
@@ -37,12 +37,15 @@ public:
 
     const bool isKeyPressed(uint8_t key_num) const;
 
-    void loadMemory(char *file);
+    uint8_t getMemory(uint8_t index) const;
+    void setMemory(uint8_t index, uint8_t val);
 
     // Utility Methods
+    void loadMemory(char *file);
     void stackPush();
     void stackPop();
     void clearDisplay();
+    void incPC();
 
 private:
     // Member variables

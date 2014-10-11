@@ -13,7 +13,7 @@
 class InstructionSet
 {
 public:
-    InstructionSet(const Chip8VM& vm);
+    InstructionSet(Chip8VM& vm);
     virtual ~InstructionSet();
 
     // CHIP8 instructions
@@ -24,7 +24,7 @@ public:
     void call(uint16_t address);
     void skpeq(uint8_t val1, uint8_t val2);
     void skpne(uint8_t val1, uint8_t val2);
-    void add(uint8_t val1, uint8_t val2);
+    void add(uint8_t val1, uint8_t val2, bool carryFlag = false);
     void mov(uint8_t home, uint8_t val);
     void _or(uint8_t val1, uint8_t val2);
     void _and(uint8_t val1, uint8_t val2);
@@ -50,7 +50,7 @@ public:
     void load(uint8_t reg);
 
 private:
-    Chip8VM& _vm;
+    Chip8VM* _vm;
 };
 
 #endif /* INSTRUCTIONSET_H_ */

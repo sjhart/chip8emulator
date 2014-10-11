@@ -136,7 +136,7 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
             break;
         case 0x01:
         {
-            /* Sets VX to the value of VY */
+            /* Sets VX to VX or VY. */
             uint8_t reg_x = code[0] & 0x0f;
             uint8_t reg_y = (code[1] >> 4);
             printf("%-10s V%01X,V%01X", "OR", reg_x, reg_y);
@@ -144,7 +144,7 @@ void DisassembleChip8Op(uint8_t *codebuffer, int pc)
             break;
         case 0x02:
         {
-            /* Sets VX to VX or VY. */
+            /* Sets VX to VX and VY. */
             uint8_t reg_x = code[0] & 0x0f;
             uint8_t reg_y = (code[1] >> 4);
             printf("%-10s V%01X,V%01X", "AND", reg_x, reg_y);

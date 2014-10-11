@@ -15,7 +15,6 @@
 using namespace std;
 
 Chip8VM::Chip8VM()
-        : PROGRAM_MEMORY_START(0x200)
 {
     memset(_v_register, 0, sizeof(_v_register));
     _i_register = 0;
@@ -53,7 +52,7 @@ uint16_t Chip8VM::getIRegister() const
     return _i_register;
 }
 
-void Chip8VM::setIegister(uint16_t i)
+void Chip8VM::setIRegister(uint16_t i)
 {
     _i_register = i;
 }
@@ -91,6 +90,18 @@ void Chip8VM::setSoundTimer(uint8_t soundTimer)
 const bool Chip8VM::isKeyPressed(uint8_t key_num) const
 {
     return _key[key_num];
+}
+
+uint8_t Chip8VM::getMemory(uint8_t index) const
+{
+    //TODO error check index bounds
+    return _memory[index];
+}
+
+void Chip8VM::setMemory(uint8_t index, uint8_t val)
+{
+    //TODO error check index bounds
+    _memory[index] = val;
 }
 
 void Chip8VM::loadMemory(char *file)
@@ -132,3 +143,7 @@ void Chip8VM::clearDisplay()
     memset(_display, 0, sizeof(_display));
 }
 
+void Chip8VM::incPC()
+{
+    _pc += 2;
+}
