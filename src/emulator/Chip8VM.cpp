@@ -26,6 +26,7 @@ Chip8VM::Chip8VM()
     memset(_memory, 0, sizeof(_memory));
     memset(_display, 0, sizeof(_display));
     memset(_memory, 0, sizeof(_memory));
+    _redraw = false;
 
     const static uint8_t FONTSET[] =
     {

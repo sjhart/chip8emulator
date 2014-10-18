@@ -32,6 +32,11 @@ public:
     void decDelayTimer();
     void decSoundTimer();
     uint8_t getSoundTimer();
+    void setKey(uint8_t index);
+    void clearKey(uint8_t index);
+    bool redraw();
+    void clearRedraw();
+    uint8_t* getDisplay();
 
     // CHIP8 instructions
     void clr();
@@ -78,6 +83,7 @@ private:
     bool _key[16];
     uint8_t _memory[4096];
     uint8_t _display[2048]; //64 by 32 grid;
+    bool _redraw;
 };
 
 //INLINES FUNCTIONS
@@ -101,6 +107,16 @@ inline void Chip8VM::decSoundTimer()
 {
     if (_sound_timer > 0)
         _sound_timer--;
+}
+
+inline void Chip8VM::setKey(uint8_t index)
+{
+    _key[index] = true;
+}
+
+inline void Chip8VM::clearKey(uint8_t index)
+{
+    _key[index] = false;
 }
 
 inline void Chip8VM::clr()
@@ -253,6 +269,7 @@ inline void Chip8VM::sprite(uint8_t regx, uint8_t regy, uint8_t height)
         }
     }
     _pc += 2; // increment program counter
+    _redraw = true;
 }
 
 inline void Chip8VM::skpdn(uint8_t key)
@@ -344,6 +361,21 @@ inline void Chip8VM::load(uint8_t reg)
         _v_register[i] = _memory[Iaddr++];
     }
     _pc += 2; // increment program counter
+}
+
+inline bool Chip8VM::redraw()
+{
+    return _redraw;
+}
+
+inline void Chip8VM::clearRedraw()
+{
+    _redraw = false;
+}
+
+inline uint8_t* Chip8VM::getDisplay()
+{
+    return _display;
 }
 
 #endif /* CHIP8VM_H_ */
