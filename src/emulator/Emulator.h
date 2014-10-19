@@ -18,10 +18,6 @@ public:
 
     Chip8VM ch8;
 
-    void keyDown(unsigned char key, int xx, int yy);
-    void keyUp(unsigned char key, int xx, int yy);
-    void idle();
-    void render(void);
 };
 
 #endif /* EMULATOR_H_ */

@@ -22,6 +22,9 @@ public:
     const static uint8_t FONTSET_SIZE = 80;
     const static uint8_t FONTSET[];
 
+    // Program Vars
+    uint8_t Program_Memory_Size;
+
     Chip8VM();
     virtual ~Chip8VM();
     void processChip8Ops();
@@ -127,12 +130,14 @@ inline void Chip8VM::clr()
 
 inline void Chip8VM::ret()
 {
-    _pc = _stack[_sp--]; // stackPop
+    _pc = _stack[--_sp]; // stackPop
+    _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::rcacall(uint16_t address)
 {
     //TODO: implement
+    _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::jmp(uint16_t address)
