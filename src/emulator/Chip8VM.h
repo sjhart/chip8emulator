@@ -23,7 +23,7 @@ public:
     const static uint8_t FONTSET[];
 
     // Program Vars
-    uint8_t Program_Memory_Size;
+    uint16_t Program_Memory_Size;
 
     Chip8VM();
     virtual ~Chip8VM();
@@ -40,6 +40,7 @@ public:
     bool redraw();
     void clearRedraw();
     uint8_t* getDisplay();
+    uint8_t getRegVal(uint8_t reg);
 
     // CHIP8 instructions
     void clr();
@@ -49,13 +50,13 @@ public:
     void call(uint16_t address);
     void skpeq(uint8_t val1, uint8_t val2);
     void skpne(uint8_t val1, uint8_t val2);
-    void add(uint8_t val1, uint8_t val2, bool carryFlag = false);
+    void add(uint8_t reg, uint8_t val, bool carryFlag = false);
     void mov(uint8_t home, uint8_t val);
     void _or(uint8_t val1, uint8_t val2);
     void _and(uint8_t val1, uint8_t val2);
     void _xor(uint8_t val1, uint8_t val2);
-    void sub(uint8_t val1, uint8_t val2);
-    void rsub(uint8_t val1, uint8_t val2);
+    void sub(uint8_t reg1, uint8_t reg2);
+    void rsub(uint8_t reg1, uint8_t reg2);
     void shr(uint8_t val);
     void shl(uint8_t val);
     void movi(uint16_t address);
@@ -98,6 +99,7 @@ inline uint8_t Chip8VM::getSoundTimer()
 inline void Chip8VM::clearDisplay()
 {
     memset(_display, 0, sizeof(_display));
+    _redraw = true;
 }
 
 inline void Chip8VM::decDelayTimer()
@@ -131,6 +133,7 @@ inline void Chip8VM::clr()
 inline void Chip8VM::ret()
 {
     _pc = _stack[--_sp]; // stackPop
+    _stack[_sp] = 0x00;
     _pc += 2; // increment program counter
 }
 
@@ -174,7 +177,7 @@ inline void Chip8VM::add(uint8_t reg, uint8_t val, bool carryFlag)
         else
             _v_register[0xF] = 0;
     }
-    _v_register[reg] = _v_register[reg] + val;
+    _v_register[reg] += val;
     _pc += 2; // increment program counter
 }
 
@@ -186,39 +189,39 @@ inline void Chip8VM::mov(uint8_t reg, uint8_t val)
 
 inline void Chip8VM::_or(uint8_t reg1, uint8_t reg2)
 {
-    _v_register[reg1] = (_v_register[reg1] | reg2);
+    _v_register[reg1] |= _v_register[reg2];
     _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::_and(uint8_t reg1, uint8_t reg2)
 {
-    _v_register[reg1] = (_v_register[reg1] & reg2);
+    _v_register[reg1] &= _v_register[reg2];
     _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::_xor(uint8_t reg1, uint8_t reg2)
 {
-    _v_register[reg1] = (_v_register[reg1] ^ reg2);
+    _v_register[reg1] ^= _v_register[reg2];
     _pc += 2; // increment program counter
 }
 
-inline void Chip8VM::sub(uint8_t reg, uint8_t val)
+inline void Chip8VM::sub(uint8_t reg1, uint8_t reg2)
 {
-    if (_v_register[reg] < val) // borrow
+    if (_v_register[reg1] < _v_register[reg2]) // borrow
         _v_register[0xF] = 1;
     else
         _v_register[0xF] = 0;
-    _v_register[reg] = _v_register[reg] - val;
+    _v_register[reg1] = _v_register[reg1] - _v_register[reg2];
     _pc += 2; // increment program counter
 }
 
-inline void Chip8VM::rsub(uint8_t reg, uint8_t val)
+inline void Chip8VM::rsub(uint8_t reg1, uint8_t reg2)
 {
-    if (_v_register[reg] > val) // borrow
+    if (_v_register[reg1] > _v_register[reg2]) // borrow
         _v_register[0xF] = 1;
     else
         _v_register[0xF] = 0;
-    _v_register[reg] = val - _v_register[reg];
+    _v_register[reg1] = _v_register[reg2] - _v_register[reg1];
     _pc += 2; // increment program counter
 }
 
@@ -231,7 +234,7 @@ inline void Chip8VM::shr(uint8_t reg)
 
 inline void Chip8VM::shl(uint8_t reg)
 {
-    _v_register[0xF] = (_v_register[reg] & 0x80);
+    _v_register[0xF] = (_v_register[reg] >> 7);
     _v_register[reg] = (_v_register[reg] << 1);
     _pc += 2; // increment program counter
 }
@@ -250,7 +253,7 @@ inline void Chip8VM::jmpv0(uint16_t address)
 inline void Chip8VM::rnd(uint8_t reg, uint8_t mask)
 {
     srand(time(0));
-    uint8_t rndNum = rand() % 255 & mask;
+    uint8_t rndNum = (rand() % 255) & mask;
     mov(reg, rndNum);
     // increment of PC counter handled by mov
 }
@@ -279,14 +282,14 @@ inline void Chip8VM::sprite(uint8_t regx, uint8_t regy, uint8_t height)
 
 inline void Chip8VM::skpdn(uint8_t key)
 {
-    if (_key[key])
+    if (_key[_v_register[key]])
         _pc += 2; // increment program counter
     _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::skpup(uint8_t key)
 {
-    if (!_key[key])
+    if (!_key[_v_register[key]])
         _pc += 2; // increment program counter
     _pc += 2; // increment program counter
 }
@@ -299,19 +302,15 @@ inline void Chip8VM::getdtmr(uint8_t reg)
 
 inline void Chip8VM::getkey(uint8_t reg)
 {
-    uint8_t i = 0;
     bool pressed = false;
-    while (!pressed)
+    for (uint8_t i = 0; i < 16; i++)
     {
-        if (i == 16)
-            i = 0;
         pressed = _key[i];
         if (pressed)
-            break;
-        i++;
+            _v_register[reg] = i;
     }
-    _v_register[reg] = i;
-    _pc += 2; // increment program counter
+    if (pressed)
+        _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::setdtmr(uint8_t reg)
@@ -381,6 +380,11 @@ inline void Chip8VM::clearRedraw()
 inline uint8_t* Chip8VM::getDisplay()
 {
     return _display;
+}
+
+inline uint8_t Chip8VM::getRegVal(uint8_t reg)
+{
+    return _v_register[reg];
 }
 
 #endif /* CHIP8VM_H_ */

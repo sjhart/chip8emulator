@@ -79,12 +79,13 @@ Chip8VM::~Chip8VM()
 
 void Chip8VM::processChip8Ops()
 {
+    uint8_t byte1 = _memory[_pc];
+    uint8_t byte2 = _memory[_pc + 1];
+    uint8_t firstnib = (byte1 >> 4);
     if (_pc <= (Program_Memory_Size + PROGRAM_MEMORY_START))
     {
-        uint8_t byte1 = _memory[_pc];
-        uint8_t byte2 = _memory[_pc + 1];
-        uint8_t firstnib = (byte1 >> 4);
 
+//TODO: move varibles back to here!!!
         switch (firstnib)
         {
         case 0x00:
@@ -124,21 +125,23 @@ void Chip8VM::processChip8Ops()
             uint16_t address = byte1 & 0x0f;
             address <<= 8;
             address |= byte2;
+//printf("pc before: %04X, %02X, %02X\n", _pc, byte1,byte2);
             call(address);
+//printf("pc after: %04X, %04X\n", _pc, address);
         }
             break;
         case 0x03:
         {
             // Skips the next instruction if VX equals NN
             uint8_t reg = byte1 & 0x0f;
-            skpeq(reg, byte2);
+            skpeq(getRegVal(reg), byte2);
         }
             break;
         case 0x04:
         {
             // Skips the next instruction if VX doesn't equal NN
             uint8_t reg = byte1 & 0x0f;
-            skpne(reg, byte2);
+            skpne(getRegVal(reg), byte2);
         }
             break;
         case 0x05:
@@ -153,7 +156,7 @@ void Chip8VM::processChip8Ops()
                 // Skips the next instruction if VX equals VY
                 uint8_t reg_x = byte1 & 0x0f;
                 uint8_t reg_y = (byte2 >> 4);
-                skpeq(reg_x, reg_y);
+                skpeq(getRegVal(reg_x), getRegVal(reg_y));
             }
         }
             break;
@@ -215,7 +218,7 @@ void Chip8VM::processChip8Ops()
                 // and to 0 when there isn't
                 uint8_t reg_x = byte1 & 0x0f;
                 uint8_t reg_y = (byte2 >> 4);
-                add(reg_x, reg_y, true);
+                add(reg_x, getRegVal(reg_y), true);
             }
                 break;
             case 0x05:
@@ -274,12 +277,13 @@ void Chip8VM::processChip8Ops()
                 // Skips the next instruction if VX doesn't equal VY
                 uint8_t reg_x = byte1 & 0x0f;
                 uint8_t reg_y = (byte2 >> 4);
-                skpne(reg_x, reg_y);
+                skpne(getRegVal(reg_x), getRegVal(reg_y));
             }
         }
             break;
         case 0x0a:
         {
+//printf("here I am!\n");
             // Sets I to the address NNN
             uint16_t address = byte1 & 0x0f;
             address <<= 8;
@@ -326,6 +330,7 @@ void Chip8VM::processChip8Ops()
                 // the key stored in VX is pressed
                 uint8_t reg = byte1 & 0x0f;
                 skpdn(reg);
+printf("skpdw %02X\n", reg);
             }
             else if (byte2 == 0xA1)
             {
@@ -333,6 +338,7 @@ void Chip8VM::processChip8Ops()
                 // the key stored in VX isn't pressed
                 uint8_t reg = byte1 & 0x0f;
                 skpup(reg);
+printf("skpup %02X\n", reg);
             }
             else
             {
@@ -357,6 +363,7 @@ void Chip8VM::processChip8Ops()
                 // A key press is awaited, and then stored in VX
                 uint8_t reg = byte1 & 0x0f;
                 getkey(reg);
+printf("here I am!\n");
             }
                 break;
             case 0x15:
@@ -370,7 +377,7 @@ void Chip8VM::processChip8Ops()
             {
                 // Sets the sound timer to VX
                 uint8_t reg = byte1 & 0x0f;
-                setdtmr(reg);
+                setstmr(reg);
             }
                 break;
             case 0x1E:
@@ -430,6 +437,11 @@ void Chip8VM::processChip8Ops()
             break;
         }
     }
+//printf("%02X%02X, %04X, %04X\n",byte1,byte2,Program_Memory_Size+PROGRAM_MEMORY_START, _pc);
+//if(_pc > Program_Memory_Size+PROGRAM_MEMORY_START)
+//{
+//    cin.get();
+//}
 }
 
 void Chip8VM::loadMemory(char *file)

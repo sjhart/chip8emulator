@@ -15,6 +15,7 @@ using namespace std;
 
 int mainWindow;
 Emulator emu;
+const double border = 5;
 
 Emulator::Emulator()
 {
@@ -153,12 +154,11 @@ void render(void)
     {
         //clear color and depth buffer
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-        glLoadIdentity();        //load identity matrix  //TODO: what is this for?
+        glLoadIdentity();        //load identity matrix
         glOrtho(0.0f, 640.0, 320.0, 0.0f, 0.0f, 1.0f);
 
         glPointSize(10.0f);        //set point size to 10 pixels
 
-        double border = 5;
         uint8_t* display = emu.ch8.getDisplay();
 
         glBegin(GL_POINTS); //starts drawing of points
