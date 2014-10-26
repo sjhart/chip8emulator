@@ -13,6 +13,8 @@
 #include <string.h>
 #include <time.h>
 
+#include <stdio.h>
+
 class Chip8VM
 {
 public:
@@ -121,6 +123,7 @@ inline void Chip8VM::setKey(uint8_t index)
 
 inline void Chip8VM::clearKey(uint8_t index)
 {
+    printf("in clearkey\n");
     _key[index] = false;
 }
 
@@ -269,10 +272,9 @@ inline void Chip8VM::sprite(uint8_t regx, uint8_t regy, uint8_t height)
         {
             if ((pxl & (0x80 >> column)) != 0) // iterate through each bit in pxl
             {
-                uint8_t curPxl = _display[regx + column + ((regy + row) * 64)];
-                if (curPxl == 1)
+                if (_display[regx + column + ((regy + row) * 64)] == 1)
                     _v_register[0xF] = 1; // mark collision
-                _display[curPxl] = curPxl ^ 1;
+                _display[regx + column + ((regy + row) * 64)] ^= 1;
             }
         }
     }
@@ -283,14 +285,22 @@ inline void Chip8VM::sprite(uint8_t regx, uint8_t regy, uint8_t height)
 inline void Chip8VM::skpdn(uint8_t key)
 {
     if (_key[_v_register[key]])
+    {
+        printf("key %0X is true, pc=%04X\n",_v_register[key],_pc+4);
         _pc += 2; // increment program counter
+    }
+
     _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::skpup(uint8_t key)
 {
     if (!_key[_v_register[key]])
+    {
+        printf("key %0X is false, pc=%04X\n",_v_register[key],_pc+4);
+        //exit(1);
         _pc += 2; // increment program counter
+    }
     _pc += 2; // increment program counter
 }
 
@@ -327,7 +337,7 @@ inline void Chip8VM::setstmr(uint8_t reg)
 
 inline void Chip8VM::addi(uint8_t reg)
 {
-    _i_register = _i_register + _v_register[reg];
+    _i_register += _v_register[reg];
     _pc += 2; // increment program counter
 }
 

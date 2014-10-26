@@ -10,12 +10,14 @@
 #include <stdint.h>
 #include <iostream>
 #include <GL/glut.h>
+#include <unistd.h>
 
 using namespace std;
 
 int mainWindow;
 Emulator emu;
 const double border = 5;
+uint8_t* display = emu.ch8.getDisplay();
 
 Emulator::Emulator()
 {
@@ -159,8 +161,6 @@ void render(void)
 
         glPointSize(10.0f);        //set point size to 10 pixels
 
-        uint8_t* display = emu.ch8.getDisplay();
-
         glBegin(GL_POINTS); //starts drawing of points
         for (int i = 0; i < 32; i++)
         {
@@ -175,8 +175,12 @@ void render(void)
         glEnd(); //end drawing of points
         glFlush();
         emu.ch8.clearRedraw();
+
+        // Throttle
+       usleep(160); // 1000ms / 16 = 16.666667ms
     }
 }
+
 
 // MAIN
 int main(int argc, char**argv)
