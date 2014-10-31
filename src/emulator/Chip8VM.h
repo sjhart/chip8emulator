@@ -13,8 +13,6 @@
 #include <string.h>
 #include <time.h>
 
-#include <stdio.h>
-
 class Chip8VM
 {
 public:
@@ -123,7 +121,6 @@ inline void Chip8VM::setKey(uint8_t index)
 
 inline void Chip8VM::clearKey(uint8_t index)
 {
-    printf("in clearkey\n");
     _key[index] = false;
 }
 
@@ -264,6 +261,8 @@ inline void Chip8VM::rnd(uint8_t reg, uint8_t mask)
 inline void Chip8VM::sprite(uint8_t regx, uint8_t regy, uint8_t height)
 {
     uint8_t pxl;
+    uint8_t x_coord = _v_register[regx];
+    uint8_t y_coord = _v_register[regy];
     _v_register[0xF] = 0;
     for (int row = 0; row < height; row++)
     {
@@ -272,9 +271,9 @@ inline void Chip8VM::sprite(uint8_t regx, uint8_t regy, uint8_t height)
         {
             if ((pxl & (0x80 >> column)) != 0) // iterate through each bit in pxl
             {
-                if (_display[regx + column + ((regy + row) * 64)] == 1)
+                if (_display[x_coord + column + ((y_coord + row) * 64)] == 1)
                     _v_register[0xF] = 1; // mark collision
-                _display[regx + column + ((regy + row) * 64)] ^= 1;
+                _display[x_coord + column + ((y_coord + row) * 64)] ^= 1;
             }
         }
     }
@@ -285,22 +284,14 @@ inline void Chip8VM::sprite(uint8_t regx, uint8_t regy, uint8_t height)
 inline void Chip8VM::skpdn(uint8_t key)
 {
     if (_key[_v_register[key]])
-    {
-        printf("key %0X is true, pc=%04X\n",_v_register[key],_pc+4);
         _pc += 2; // increment program counter
-    }
-
     _pc += 2; // increment program counter
 }
 
 inline void Chip8VM::skpup(uint8_t key)
 {
     if (!_key[_v_register[key]])
-    {
-        printf("key %0X is false, pc=%04X\n",_v_register[key],_pc+4);
-        //exit(1);
         _pc += 2; // increment program counter
-    }
     _pc += 2; // increment program counter
 }
 
@@ -343,7 +334,7 @@ inline void Chip8VM::addi(uint8_t reg)
 
 inline void Chip8VM::hxchr(uint8_t reg)
 {
-    _i_register = FONTSET_MEMORY_START + (reg * 5);
+    _i_register = FONTSET_MEMORY_START + (_v_register[reg] * 5);
     _pc += 2; // increment program counter
 }
 
@@ -365,6 +356,7 @@ inline void Chip8VM::str(uint8_t reg)
         _memory[Iaddr++] = _v_register[i];
     }
     _pc += 2; // increment program counter
+    _i_register += reg + 1;
 }
 
 inline void Chip8VM::load(uint8_t reg)
@@ -375,6 +367,7 @@ inline void Chip8VM::load(uint8_t reg)
         _v_register[i] = _memory[Iaddr++];
     }
     _pc += 2; // increment program counter
+    _i_register += reg + 1;
 }
 
 inline bool Chip8VM::redraw()

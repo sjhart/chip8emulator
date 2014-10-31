@@ -8,7 +8,6 @@
 #include "Chip8VM.h"
 
 #include <stdio.h>
-#include <string.h>
 #include <iostream>
 
 using namespace std;
@@ -79,13 +78,11 @@ Chip8VM::~Chip8VM()
 
 void Chip8VM::processChip8Ops()
 {
-    uint8_t byte1 = _memory[_pc];
-    uint8_t byte2 = _memory[_pc + 1];
-    uint8_t firstnib = (byte1 >> 4);
     if (_pc <= (Program_Memory_Size + PROGRAM_MEMORY_START))
     {
-//printf("pc before: %04X, %02X, %02X\n", _pc, byte1,byte2);
-//TODO: move variables back to here!!!
+        uint8_t byte1 = _memory[_pc];
+        uint8_t byte2 = _memory[_pc + 1];
+        uint8_t firstnib = (byte1 >> 4);
         switch (firstnib)
         {
         case 0x00:
@@ -306,12 +303,18 @@ void Chip8VM::processChip8Ops()
             break;
         case 0x0d:
         {
-            // Sprites stored in memory at location
-            // in index register (I), maximum 8bits
-            // wide. Wraps around the screen. If when
-            // drawn, clears a pixel, register VF is
-            // set to 1 otherwise it is zero. All drawing
-            // is XOR drawing (e.g. it toggles the screen pixels)
+            // Draws a sprite at coordinate (VX, VY)
+            // that has a width of 8 pixels and a height
+            // of N pixels. Each row of 8 pixels is read
+            // as bit-coded (with the most significant bit
+            // of each byte displayed on the left) starting
+            // from memory location I; I value doesn't change
+            // after the execution of this instruction.
+            // As described above, VF is set to 1 if any screen
+            // pixels are flipped from set to unset when the
+            // sprite is drawn, and to 0 if that doesn't happen.
+            // All drawing is XOR drawing (e.g. it toggles the screen pixels)
+
             uint8_t reg_x = byte1 & 0x0f;
             uint8_t reg_y = (byte2 >> 4);
             uint8_t height = byte2 & 0x0f;
