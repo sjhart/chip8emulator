@@ -308,7 +308,10 @@ inline void Chip8VM::getkey(uint8_t reg)
     {
         pressed = _key[i];
         if (pressed)
+        {
             _v_register[reg] = i;
+            break;
+        }
     }
     if (pressed)
         _pc += 2; // increment program counter
